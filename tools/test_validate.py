@@ -25,6 +25,8 @@ class Checks(unittest.TestCase):
         self.assertIn("zu groß", errs(run("8.0.0.0/15\n")))
         self.assertIn("Label large-net", errs(run("8.8.0.0/16\n")))
         self.assertTrue(run("8.8.0.0/16\n", labels=["large-net"]).ok)
+        # Bestand mit großem Netz braucht beim nächsten PR kein Label mehr
+        self.assertTrue(run("8.8.0.0/16\n9.9.9.9/32\n", "8.8.0.0/16\n").ok)
 
     def test_duplikat_ueberlappung_sortierung(self):
         self.assertIn("Duplikat", errs(run("1.2.3.4/32\n1.2.3.4/32\n")))
