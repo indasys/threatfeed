@@ -80,7 +80,7 @@ def parse(text, rep, report_errors=True):
     return nets
 
 
-def check_entries(nets, rep):
+def check_entries(nets, rep, existing=frozenset()):
     # Reservierte Netze und Präfixlängen
     for no, net in nets:
         for r in RESERVED:
@@ -90,7 +90,8 @@ def check_entries(nets, rep):
         normal, minimum = (V4_NORMAL, V4_MIN) if net.version == 4 else (V6_NORMAL, V6_MIN)
         if net.prefixlen < minimum:
             rep.error(f"{net} zu groß, kleinstes erlaubtes Präfix ist /{minimum}", no)
-        elif net.prefixlen < normal:
+        elif net.prefixlen < normal and net not in existing:
+            # Nur neu hinzugefügte große Netze brauchen die erhöhte Freigabe, nicht der Bestand
             rep.required_labels.add("large-net")
 
     # Duplikate
@@ -147,7 +148,7 @@ def run(head_text, base_text="", labels=(), changed=()):
     labels = set(labels)
     head = parse(head_text, rep)
     base = parse(base_text, rep, report_errors=False)
-    check_entries(head, rep)
+    check_entries(head, rep, {n for _, n in base})
     check_diff(base, head, labels, rep)
     check_paths(changed, rep)
     for lab in sorted(rep.required_labels - labels):
