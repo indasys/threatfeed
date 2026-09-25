@@ -91,7 +91,7 @@ def check_entries(nets, rep, existing=frozenset()):
         if net.prefixlen < minimum:
             rep.error(f"{net} zu groß, kleinstes erlaubtes Präfix ist /{minimum}", no)
         elif net.prefixlen < normal and net not in existing:
-            # Nur neu hinzugefügte große Netze brauchen die erhöhte Freigabe, nicht der Bestand
+            # Nur neu hinzugefügte große Netze brauchen die Kennzeichnung, nicht der Bestand
             rep.required_labels.add("large-net")
 
     # Duplikate
@@ -152,7 +152,7 @@ def run(head_text, base_text="", labels=(), changed=()):
     check_diff(base, head, labels, rep)
     check_paths(changed, rep)
     for lab in sorted(rep.required_labels - labels):
-        rep.error(f"Label {lab} erforderlich (erhöhte Freigabe mit zwei Approvern)")
+        rep.error(f"Label {lab} erforderlich (Kennzeichnung für die Freigabe)")
     return rep
 
 
