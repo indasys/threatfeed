@@ -1,0 +1,43 @@
+name: threatfeed-validate
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      # Checkt refs/pull/N/merge aus, also das Ergebnis nach dem Merge
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Basisstand von main bereitstellen
+        run: |
+          # Erster Parent des Merge Commits ist exakt der main Stand, gegen den gemergt wird
+          BASE_SHA=$(git rev-parse HEAD^1)
+          echo "Basis: $BASE_SHA"
+          git show "$BASE_SHA:threatfeed.txt" > /tmp/base.txt 2>/dev/null || : > /tmp/base.txt
+          git diff --name-only "$BASE_SHA" HEAD > /tmp/changed.txt
+          # Prüflogik aus main verwenden, damit ein PR seine eigene Prüfung nicht aushebeln kann
+          git show "$BASE_SHA:tools/validate.py" > /tmp/validate.py 2>/dev/null || cp tools/validate.py /tmp/validate.py
+
+      - name: Checks Kapitel 5
+        env:
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: python3 /tmp/validate.py --base /tmp/base.txt --changed-files /tmp/changed.txt --labels "$LABELS"
+
+      - name: Selbsttest der Prüflogik aus dem PR
+        run: python3 -m unittest discover -s tools -p 'test_*.py' -v

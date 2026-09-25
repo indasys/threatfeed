@@ -1,0 +1,4 @@
+/threatfeed.txt   @indasys/threatfeed-approvers
+/.gitattributes   @indasys/threatfeed-maintainers
+/tools/           @indasys/threatfeed-maintainers
+/.github/         @indasys/threatfeed-maintainers

@@ -1,0 +1,79 @@
+name: threatfeed-approval-gate
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  pull_request_review:
+    types: [submitted, dismissed]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  approval-gate:
+    name: approval-gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Freigaben prüfen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          ELEVATED: ${{ vars.ELEVATED_APPROVERS }}
+        run: |
+          gh api "repos/$REPO/pulls/$PR" > /tmp/pr.json
+          gh api --paginate --slurp "repos/$REPO/pulls/$PR/reviews?per_page=100" > /tmp/reviews.json
+          python3 - <<'PY'
+          import json, os, subprocess, sys
+          pr = json.load(open("/tmp/pr.json"))
+          reviews = [r for page in json.load(open("/tmp/reviews.json")) for r in page]
+          author = pr["user"]["login"].lower()
+          head = pr["head"]["sha"]
+          labels = {l["name"] for l in pr["labels"]}
+          elevated = {u.strip().lower() for u in os.environ.get("ELEVATED", "").split(",") if u.strip()}
+
+          def has_write(user):
+              # Im öffentlichen Repo kann jedes GitHub Konto ein Approve abgeben. Gezählt wird nur,
+              # wer Schreibrechte hat. Bei API Fehlern wird nicht gezählt (fail closed).
+              res = subprocess.run(["gh", "api", f"repos/{os.environ['REPO']}/collaborators/{user}/permission",
+                                    "--jq", ".permission"], capture_output=True, text=True)
+              return res.returncode == 0 and res.stdout.strip() in ("admin", "maintain", "write")
+
+          latest = {}
+          for r in reviews:  # API liefert chronologisch
+              if r["state"] in ("APPROVED", "CHANGES_REQUESTED", "DISMISSED"):
+                  latest[(r.get("user") or {}).get("login", "").lower()] = r
+          candidates = {u for u, r in latest.items()
+                        if u and r["state"] == "APPROVED" and r["commit_id"] == head and u != author}
+          approvers = {u for u in candidates if has_write(u)}
+          ignored = candidates - approvers
+          blocked = [u for u, r in latest.items() if r["state"] == "CHANGES_REQUESTED"]
+
+          # emergency lockert nur large-net (Konzept 7.2). bulk bleibt immer bei zwei Freigaben,
+          # sonst könnte eine einzelne Freigabe den Feed fast vollständig leeren.
+          high = "bulk" in labels or ("large-net" in labels and "emergency" not in labels)
+          need = 2 if high else 1
+          problems = []
+          if blocked:
+              problems.append("Offene Änderungswünsche vorhanden")
+          if len(approvers) < need:
+              problems.append(f"{len(approvers)} von {need} Freigaben auf dem aktuellen Stand")
+          if high and not approvers & elevated:
+              problems.append("Erhöhte Freigabe: CISO oder Vertretung muss freigeben")
+          if ignored:
+              print(f"::notice::Nicht gezählt (keine Schreibrechte): {', '.join(sorted(ignored))}")
+          if "emergency" in labels:
+              print("::warning::Emergency Change, nachträgliches Review innerhalb eines Werktags erforderlich")
+
+          for p in problems:
+              print(f"::error::{p}")
+          print(f"Freigaben: {len(approvers)}, benötigt: {need}, Labels: {sorted(labels)}")
+          sys.exit(1 if problems else 0)
+          PY

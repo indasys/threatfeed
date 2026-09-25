@@ -1,0 +1,4 @@
+# Feed immer mit LF, auch bei core.autocrlf=true unter Windows
+threatfeed.txt text eol=lf
+*.py text eol=lf
+*.yml text eol=lf
