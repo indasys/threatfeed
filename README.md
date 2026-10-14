@@ -8,7 +8,7 @@ Abruf-URL und Abrufintervall sind auf den FortiGates konfiguriert und nicht Teil
 
 - `threatfeed.txt` - der Feed (Ausgangsstand war die frühere Sperrliste, siehe Commit „Altliste als Ausgangsstand übernommen“)
 - `tools/` - Prüflogik `validate.py` und ihre Selbsttests
-- `.github/` - CODEOWNERS, Dependabot und die Workflows `validate` und `approval-gate`
+- `.github/` - CODEOWNERS, Dependabot und der Workflow `validate`
 - `.gitattributes` - erzwingt LF-Zeilenenden für Feed, Python und YAML
 
 ## Format von threatfeed.txt
@@ -26,8 +26,6 @@ Abruf-URL und Abrufintervall sind auf den FortiGates konfiguriert und nicht Teil
 4. Validierung: Der Workflow `validate` prüft den Stand nach dem Merge gegen `main`, und zwar immer mit der Prüflogik aus `main`, damit ein PR seine eigene Prüfung nicht aushebeln kann. Er ist Pflicht-Check.
 5. Freigabe (Vier-Augen-Prinzip, per Ruleset auf `main`): Änderungen nur per Pull Request, Review durch einen Code Owner (für `threatfeed.txt` das Team `threatfeed-approvers`), Freigabe des letzten Pushs, veraltete Freigaben werden bei neuem Push verworfen, offene Review-Threads müssen gelöst sein. Löschen von `main` und Force-Push sind gesperrt.
 6. Merge nur als Squash.
-
-Stand `main`: Zusätzlich läuft der Workflow `approval-gate`. Er zählt nur Freigaben von Konten mit Schreibrechten auf dem aktuellen Commit (nicht vom Autor). Bei `bulk`, oder bei `large-net` ohne `emergency`, verlangt er zwei Freigaben, davon eine erhöhte (CISO oder Vertretung, hinterlegt in der Repo-Variable `ELEVATED_APPROVERS`). Ein offener PR („Vier Augen Prinzip: approval-gate entfernt“) schlägt vor, diesen Workflow zu streichen; dann genügt immer eine Freigabe aus `threatfeed-approvers` und die Labels bleiben reine Pflichtkennzeichnung.
 
 ## Prüfregeln (`tools/validate.py`)
 

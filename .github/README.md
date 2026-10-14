@@ -6,7 +6,7 @@ GitHub-Konfiguration des Repos: Zuständigkeiten, Abhängigkeits-Updates und die
 
 - `CODEOWNERS` - Pflicht-Reviewer: `threatfeed.txt` durch das Team `threatfeed-approvers`, `.gitattributes`, `tools/` und `.github/` durch die eingetragenen Maintainer
 - `dependabot.yml` - monatliche Update-PRs für die verwendeten GitHub Actions
-- `workflows/` - die Workflows `validate` und `approval-gate`
+- `workflows/` - der Workflow `validate`
 
 ## Pflege
 
