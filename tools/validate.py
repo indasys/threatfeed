@@ -18,7 +18,7 @@ MAX_REMOVED = 50
 MAX_SHRINK = 0.20
 V4_NORMAL, V4_MIN = 24, 16   # /24 bis /32 normal, /16 bis /23 nur mit large-net, kürzer abgelehnt
 V6_NORMAL, V6_MIN = 48, 32   # /48 bis /128 normal, /32 bis /47 nur mit large-net, kürzer abgelehnt
-ALLOWED_PATHS = ("threatfeed.txt", ".gitattributes", "tools/", ".github/")
+ALLOWED_PATHS = ("threatfeed.txt", ".gitattributes", "README.md", "tools/", ".github/")
 
 RESERVED = [ipaddress.ip_network(n) for n in (
     "0.0.0.0/8", "10.0.0.0/8", "100.64.0.0/10", "127.0.0.0/8", "169.254.0.0/16",
@@ -91,7 +91,7 @@ def check_entries(nets, rep, existing=frozenset()):
         if net.prefixlen < minimum:
             rep.error(f"{net} zu groß, kleinstes erlaubtes Präfix ist /{minimum}", no)
         elif net.prefixlen < normal and net not in existing:
-            # Nur neu hinzugefügte große Netze brauchen die erhöhte Freigabe, nicht der Bestand
+            # Nur neu hinzugefügte große Netze brauchen die Kennzeichnung, nicht der Bestand
             rep.required_labels.add("large-net")
 
     # Duplikate
@@ -152,7 +152,7 @@ def run(head_text, base_text="", labels=(), changed=()):
     check_diff(base, head, labels, rep)
     check_paths(changed, rep)
     for lab in sorted(rep.required_labels - labels):
-        rep.error(f"Label {lab} erforderlich (erhöhte Freigabe mit zwei Approvern)")
+        rep.error(f"Label {lab} erforderlich (Kennzeichnung für die Freigabe)")
     return rep
 
 

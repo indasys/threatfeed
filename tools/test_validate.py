@@ -44,7 +44,10 @@ class Checks(unittest.TestCase):
         self.assertTrue(run(head, labels=["bulk"]).ok)
 
     def test_pfade(self):
-        self.assertFalse(run("1.2.3.4/32\n", changed=["README.md"]).ok)
+        self.assertTrue(run("1.2.3.4/32\n", changed=["README.md"]).ok)
+        self.assertFalse(run("1.2.3.4/32\n", changed=["notizen.md"]).ok)
+        self.assertFalse(run("1.2.3.4/32\n", changed=["docs/README.md"]).ok)
+        self.assertFalse(run("1.2.3.4/32\n", changed=["README.md.bak"]).ok)
         self.assertTrue(run("1.2.3.4/32\n", changed=["threatfeed.txt", "tools/validate.py", ".gitattributes"]).ok)
 
     def test_annotation_escape(self):
