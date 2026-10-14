@@ -18,7 +18,7 @@ MAX_REMOVED = 50
 MAX_SHRINK = 0.20
 V4_NORMAL, V4_MIN = 24, 16   # /24 bis /32 normal, /16 bis /23 nur mit large-net, kürzer abgelehnt
 V6_NORMAL, V6_MIN = 48, 32   # /48 bis /128 normal, /32 bis /47 nur mit large-net, kürzer abgelehnt
-ALLOWED_PATHS = ("threatfeed.txt", ".gitattributes", "tools/", ".github/")
+ALLOWED_PATHS = ("threatfeed.txt", ".gitattributes", "README.md", "tools/", ".github/")
 
 RESERVED = [ipaddress.ip_network(n) for n in (
     "0.0.0.0/8", "10.0.0.0/8", "100.64.0.0/10", "127.0.0.0/8", "169.254.0.0/16",
