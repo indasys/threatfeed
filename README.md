@@ -24,7 +24,7 @@ Abruf-URL und Abrufintervall sind auf den FortiGates konfiguriert und nicht Teil
 2. Lokal prüfen: `python3 tools/validate.py`. Sortieren und exakte Duplikate entfernen: `python3 tools/validate.py --sort`.
 3. Pull Request auf `main` öffnen und, falls nötig, Labels setzen (siehe unten).
 4. Validierung: Der Workflow `validate` prüft den Stand nach dem Merge gegen `main`, und zwar immer mit der Prüflogik aus `main`, damit ein PR seine eigene Prüfung nicht aushebeln kann. Er ist Pflicht-Check.
-5. Freigabe (Vier-Augen-Prinzip, per Ruleset auf `main`): Änderungen nur per Pull Request, Review durch einen Code Owner (für `threatfeed.txt` das Team `threatfeed-approvers`), Freigabe des letzten Pushs, veraltete Freigaben werden bei neuem Push verworfen, offene Review-Threads müssen gelöst sein. Löschen von `main` und Force-Push sind gesperrt.
+5. Freigabe (Vier-Augen-Prinzip, per Ruleset auf `main`): Änderungen nur per Pull Request, eine Freigabe durch einen Code Owner genügt (für `threatfeed.txt` das Team `threatfeed-approvers`), auch bei den Labels `large-net` und `bulk`. Freigabe des letzten Pushs, veraltete Freigaben werden bei neuem Push verworfen, offene Review-Threads müssen gelöst sein. Löschen von `main` und Force-Push sind gesperrt.
 6. Merge nur als Squash.
 
 ## Prüfregeln (`tools/validate.py`)
@@ -34,9 +34,11 @@ Abruf-URL und Abrufintervall sind auf den FortiGates konfiguriert und nicht Teil
 - Mehr als 256 neue oder mehr als 50 entfernte Einträge: Label `bulk` erforderlich
 - Leerer Feed wird abgelehnt; Schrumpfen um mehr als 20 % nur mit `bulk`
 - Höchstens 100.000 Einträge
-- Ein PR darf nur `threatfeed.txt`, `.gitattributes`, `tools/` und `.github/` ändern
+- Ein PR darf nur `threatfeed.txt`, `.gitattributes`, `README.md` im Stamm, `tools/` und `.github/` ändern
 
 ## Labels
+
+Die Labels sind reine Kennzeichnung: `validate` verlangt `large-net` und `bulk`, wo die Regeln greifen, an der Zahl der nötigen Freigaben ändern sie nichts.
 
 - `large-net` - neues Netz größer `/24` bzw. `/48`
 - `bulk` - mehr als 256 neue oder 50 entfernte Einträge
@@ -45,6 +47,6 @@ Abruf-URL und Abrufintervall sind auf den FortiGates konfiguriert und nicht Teil
 
 ## Pflege
 
-- Änderungen an `tools/` und `.github/` brauchen ein Review der dort in `.github/CODEOWNERS` eingetragenen Owner.
+- Änderungen an `README.md` im Stamm, `.gitattributes`, `tools/` und `.github/` brauchen ein Review der dort in `.github/CODEOWNERS` eingetragenen Owner.
 - Neue Prüfregeln immer mit Selbsttest in `tools/test_validate.py`. Sie greifen für andere PRs erst, wenn sie auf `main` gemergt sind.
 - Die Grenzwerte stehen als Konstanten am Anfang von `tools/validate.py`; bei Änderung diese README mitziehen.
